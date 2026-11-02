@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -27,7 +28,7 @@ class LintTests(unittest.TestCase):
 
     def tool(self, body):
         path = self.root / "linter"
-        path.write_text("#!/usr/bin/env python3\n" + body)
+        path.write_text("#!" + sys.executable + "\n" + body)
         path.chmod(0o755)
         return str(path)
 
