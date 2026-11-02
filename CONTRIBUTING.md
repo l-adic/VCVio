@@ -20,6 +20,23 @@ Before sending work for review:
 - Keep repo-wide Lean options in `lakefile.lean`. Do not restate `autoImplicit = false` with per-file `set_option` lines.
 - Do not disable linters locally or globally to make warnings disappear. Fix the underlying issue instead of adding `set_option linter.* false`, `set_option weak.linter.* false`, or repo-level linter suppressions.
 
+## Python tooling
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) for
+repository Python checks. CI uses uv 0.13.6. The uv commands below select Python
+3.12; uv downloads it if needed. Run them from the repository root.
+These checks use only the standard library. `--no-project` runs them without
+installing a Python package or creating a project environment.
+
+The Agent Docs workflow runs these same commands:
+
+```bash
+uv run --no-project --python 3.12 python scripts/test-agent-docs.py
+uv run --no-project --python 3.12 python scripts/check-agent-docs.py
+uv run --no-project --python 3.12 python scripts/extract-doc-fragments.py --check
+uv run --no-project --python 3.12 python scripts/check-doc-names.py
+```
+
 ## Pull Request Checks And Merge Queue
 
 Before enqueuing a reviewed PR, inspect every check on its current head, including lint and
