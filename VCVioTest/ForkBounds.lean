@@ -59,4 +59,28 @@ example [∀ t, DecidableEq (spec.Range t)]
 
 end replay
 
+section replayMixed
+
+variable {ι ι' : Type} [DecidableEq ι] [DecidableEq ι'] {coins : OracleSpec ι'}
+  {spec : OracleSpec ι} {α : Type} [OracleSpec.AnswerMeasure coins]
+  [OracleSpec.UniformAnswerMeasure spec]
+
+/-- The replay forking bound needs uniform answers only at the forked query. Here the fork is at a
+query of the uniform summand `spec` while the summand `coins` carries arbitrary answer measures,
+and the uniformity instance at the forked query is found through
+`OracleSpec.UniformAnswerMeasureAt.add_inr`. -/
+example [∀ t, DecidableEq ((coins + spec).Range t)]
+    (main : OracleComp (coins + spec) α) (qb : ι' ⊕ ι → ℕ) (i : ι)
+    [Fintype ((coins + spec).Range (Sum.inr i))]
+    (cf : α → Option (Fin (qb (Sum.inr i) + 1)))
+    (hreach : OracleComp.PathCfReachable main qb (Sum.inr i) cf) :
+    (let acc : ℝ≥0∞ := ∑ s, Pr{let x ← main}[cf x = some s]
+     let h : ℝ≥0∞ := Fintype.card ((coins + spec).Range (Sum.inr i))
+     let q := qb (Sum.inr i) + 1
+     acc * (acc / q - h⁻¹)) ≤
+      Pr{let r ← OracleComp.contextFork main qb (Sum.inr i) cf}[r.isSome] :=
+  OracleComp.le_prEvent_isSome_contextFork main qb (Sum.inr i) cf hreach
+
+end replayMixed
+
 end VCVioTest.ForkBounds

@@ -447,7 +447,12 @@ both facts, and a cardinality statement takes `[Fintype (spec.Range t)]` for the
 mentions (`UniformAnswerMeasure.toMeasure_singleton`). A blanket instance from
 `[∀ t, Finite (spec.Range t)] [∀ t, Nonempty (spec.Range t)]` would silently choose a
 distribution for an arbitrary oracle, so `UniformAnswerMeasure.ofFiniteNonempty` is an explicit
-opt-in and only the concrete `unifSpec` and `coinSpec` instances are global. Structural
+opt-in and only the concrete `unifSpec` and `coinSpec` instances are global. The per-query law
+is `UniformAnswerMeasureAt spec t` (a `Prop` class on `[AnswerMeasure spec]`): a uniform
+specification satisfies it at every query, a sum satisfies it at a summand's query whenever that
+summand does (`UniformAnswerMeasureAt.add_inl`, `UniformAnswerMeasureAt.add_inr`), and results
+that use uniformity at one query, such as `prEvent_liftM_query_eq_card_div` and the replay forking
+bound, take it instead of `UniformAnswerMeasure`. Structural
 `support` of an `OracleComp` needs neither measure class; a
 positive-mass bridge needs assumptions on the chosen measures.
 

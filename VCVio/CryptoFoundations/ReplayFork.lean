@@ -47,7 +47,8 @@ trace events, so this file makes `PFunctor.Idx` locally reducible in order for
 * `contextFork_propertyTransfer`: postconditions of the main computation transfer to both branches.
 * `sq_prEvent_main_le_contextForkPair`: the squaring step for two independent completions.
 * `le_prEvent_isSome_contextFork`: the replay forking bound, stated with `Pr{…}` events of the
-  output measures.
+  output measures. The answer measures are arbitrary except at the forked query, which must be
+  uniform (`OracleSpec.UniformAnswerMeasureAt`).
 
 ## References
 
@@ -591,11 +592,12 @@ theorem prEvent_contextForkPair_le_guarded_add_collision [DecidableEq ι]
   exact (prEvent_mono source _ _ fun view? => hpoint view?).trans
     (prEvent_or_le source guardGood collisionGood)
 
-/-- A fresh focused answer collides with the first completion's answer with
+/-- A fresh uniform focused answer collides with the first completion's answer with
 probability at most the inverse answer-space cardinality. -/
 theorem prEvent_contextForkCollision_le_main_div [DecidableEq ι]
-    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.UniformAnswerMeasure spec]
+    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.AnswerMeasure spec]
     (main : OracleComp spec α) (qb : ι → ℕ) (i : ι) [Fintype (spec.Range i)]
+    [OracleSpec.UniformAnswerMeasureAt spec i]
     (cf : α → Option (Fin (qb i + 1))) (s : Fin (qb i + 1)) :
     Pr{let r ← contextForkCollision main qb i cf s}[r = some s] ≤
       Pr{let x ← main}[cf x = some s] / Fintype.card (spec.Range i) := by
@@ -691,8 +693,9 @@ theorem prEvent_contextForkViewCollision_le_collision [DecidableEq ι]
 /-- The successful equal-answer branch of the intrinsic context experiment is
 bounded by one uniform-answer collision against the original success event. -/
 theorem prEvent_contextForkViewCollision_le_main_div [DecidableEq ι]
-    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.UniformAnswerMeasure spec]
+    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.AnswerMeasure spec]
     (main : OracleComp spec α) (qb : ι → ℕ) (i : ι) [Fintype (spec.Range i)]
+    [OracleSpec.UniformAnswerMeasureAt spec i]
     (cf : α → Option (Fin (qb i + 1))) (s : Fin (qb i + 1)) :
     Pr{let r ← contextForkViewCollision main qb i cf s}[r = some s] ≤
       Pr{let x ← main}[cf x = some s] / Fintype.card (spec.Range i) :=
@@ -702,8 +705,9 @@ theorem prEvent_contextForkViewCollision_le_main_div [DecidableEq ι]
 /-- Fixed-occurrence forking succeeds with the usual square-minus-collision
 lower bound, stated directly for the guarded PolyFun context experiment. -/
 theorem sq_sub_div_le_prEvent_guardedContextFork [DecidableEq ι]
-    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.UniformAnswerMeasure spec]
+    [∀ t, DecidableEq (spec.Range t)] [OracleSpec.AnswerMeasure spec]
     (main : OracleComp spec α) (qb : ι → ℕ) (i : ι) [Fintype (spec.Range i)]
+    [OracleSpec.UniformAnswerMeasureAt spec i]
     (cf : α → Option (Fin (qb i + 1)))
     (hreach : PathCfReachable main qb i cf) (s : Fin (qb i + 1)) :
     let h : ℝ≥0∞ := ↑(Fintype.card (spec.Range i))
@@ -780,10 +784,15 @@ theorem prEvent_guardedContextFork_eq_contextFork_component [DecidableEq ι]
 
 /-- Direct probability bound for the canonical semantic context fork. The
 program manipulation is discharged by PolyFun; this theorem contains only
-the finite selector aggregation and the usual Cauchy--Schwarz estimate. -/
+the finite selector aggregation and the usual Cauchy--Schwarz estimate.
+
+The answer measures are arbitrary except at the forked query `i`, whose answers must be
+uniform: that is the only place the proof uses the answer distribution, in the collision
+estimate `prEvent_contextForkCollision_le_main_div`. -/
 theorem le_prEvent_isSome_contextFork [DecidableEq ι] [∀ t, DecidableEq (spec.Range t)]
-    [OracleSpec.UniformAnswerMeasure spec]
+    [OracleSpec.AnswerMeasure spec]
     (main : OracleComp spec α) (qb : ι → ℕ) (i : ι) [Fintype (spec.Range i)]
+    [OracleSpec.UniformAnswerMeasureAt spec i]
     (cf : α → Option (Fin (qb i + 1)))
     (hreach : PathCfReachable main qb i cf) :
     (let acc : ℝ≥0∞ := ∑ s, Pr{let x ← main}[cf x = some s]

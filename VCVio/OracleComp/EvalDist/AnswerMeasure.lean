@@ -86,6 +86,24 @@ theorem AnswerMeasure.toMeasure_eq_uniformOn [UniformAnswerMeasure spec] (t : sp
     toMeasure t = @uniformOn (spec.Range t) ⊤ Set.univ :=
   UniformAnswerMeasure.toMeasure_eq_uniform t
 
+/-- The law that one query of a specification with chosen answer measures samples uniformly from
+its answer type, with the remaining queries unconstrained.
+
+This is the per-query content of `UniformAnswerMeasure`, which supplies it at every query. It is
+the hypothesis of results that use uniformity at a single query, such as the replay forking bound
+`OracleComp.le_prEvent_isSome_contextFork`, which forks at one query and leaves the other oracles
+with arbitrary answer measures. Summands of a combined specification inherit it through
+`UniformAnswerMeasureAt.add_inl` and `UniformAnswerMeasureAt.add_inr`. -/
+class UniformAnswerMeasureAt (spec : OracleSpec.{u, v} ι) [AnswerMeasure spec] (t : spec.Domain) :
+    Prop where
+  /-- Query `t` uses the uniform probability measure on its answer type. -/
+  toMeasure_eq_uniform : AnswerMeasure.toMeasure t = @uniformOn (spec.Range t) ⊤ Set.univ
+
+/-- A uniform specification is uniform at each of its queries. -/
+instance UniformAnswerMeasureAt.ofUniformAnswerMeasure [UniformAnswerMeasure spec]
+    (t : spec.Domain) : UniformAnswerMeasureAt spec t :=
+  ⟨UniformAnswerMeasure.toMeasure_eq_uniform t⟩
+
 /-- Select uniform measure semantics for an oracle specification whose answer types are finite
 and nonempty. -/
 @[expose, reducible]
@@ -172,6 +190,20 @@ noncomputable instance UniformAnswerMeasure.add {ι' : Type*} (spec' : OracleSpe
   toMeasure_eq_uniform
     | .inl t => AnswerMeasure.toMeasure_eq_uniformOn (spec := spec) t
     | .inr t => AnswerMeasure.toMeasure_eq_uniformOn (spec := spec') t
+
+/-- A combined specification is uniform at a query of its left summand whenever that summand
+is. -/
+instance UniformAnswerMeasureAt.add_inl {ι' : Type*} (spec' : OracleSpec.{_, v} ι')
+    [AnswerMeasure spec] [AnswerMeasure spec'] (t : spec.Domain) [UniformAnswerMeasureAt spec t] :
+    UniformAnswerMeasureAt (spec + spec') (Sum.inl t) :=
+  ⟨UniformAnswerMeasureAt.toMeasure_eq_uniform (spec := spec) (t := t)⟩
+
+/-- A combined specification is uniform at a query of its right summand whenever that summand
+is. -/
+instance UniformAnswerMeasureAt.add_inr {ι' : Type*} (spec' : OracleSpec.{_, v} ι')
+    [AnswerMeasure spec] [AnswerMeasure spec'] (t : spec'.Domain)
+    [UniformAnswerMeasureAt spec' t] : UniformAnswerMeasureAt (spec + spec') (Sum.inr t) :=
+  ⟨UniformAnswerMeasureAt.toMeasure_eq_uniform (spec := spec') (t := t)⟩
 
 end OracleSpec
 
