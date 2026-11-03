@@ -220,8 +220,12 @@ coherence hypotheses of the KEM–DEM adapter.
 
 `VCVio/CryptoFoundations/SeededFork.lean` and `ReplayFork.lean` prove the
 seeded and context-fork success bounds as `Pr{…}` bounds on the
-`Option.isSome` event under uniform answer measures
-(`OracleSpec.UniformAnswerMeasure`). `FiatShamir/Sigma/Fork.lean` specializes the
+`Option.isSome` event. The seeded bound takes uniform answer measures
+(`OracleSpec.UniformAnswerMeasure`); the replay bound
+`OracleComp.le_prEvent_isSome_contextFork` takes arbitrary answer measures
+(`OracleSpec.AnswerMeasure`) and uniformity at the forked query only
+(`OracleSpec.UniformAnswerMeasureAt`), so the other oracles, such as an
+adversary's coins, may answer with any distribution. `FiatShamir/Sigma/Fork.lean` specializes the
 replay bound to the managed random-oracle trace, with the measure instances of
 `wrappedSpec` taken as hypotheses so each caller fixes its own discrete answer
 spaces.

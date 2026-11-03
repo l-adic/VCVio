@@ -507,6 +507,26 @@ theorem evalDistEq_of_forall_prEvent_eq_output [∀ t, Finite (spec.Range t)]
   rw [key mx (fun a ha => by simp [T, ha]) s, key my (fun a ha => by simp [T, ha]) s]
   exact Finset.sum_congr rfl fun x _ => h x
 
+/-- When a query has the uniform answer measure, an event of that query lifted once has the
+proportion of satisfying responses as its probability. -/
+theorem prEvent_liftM_query_eq_card_div (t : spec.Domain) [Fintype (spec.Range t)]
+    [OracleSpec.UniformAnswerMeasureAt spec t] (p : spec.Range t → Prop) [DecidablePred p] :
+    Pr{let u ← (liftM (OracleSpec.query t) : OracleComp spec (spec.Range t))}[p u] =
+      ((Finset.univ.filter p).card : ℝ≥0∞) / Fintype.card (spec.Range t) := by
+  let : MeasurableSpace (spec.Range t) := ⊤
+  rw [prEvent_eq_evalDist_of_discrete,
+    evalDist_liftM_query_apply t MeasurableSpace.measurableSet_top,
+    OracleSpec.UniformAnswerMeasureAt.toMeasure_eq_uniform (t := t), uniformOn_univ_apply_setOf]
+
+/-- When a query has the uniform answer measure, an event of that single query has the proportion
+of satisfying responses as its probability. -/
+theorem prEvent_query_eq_card_div (t : spec.Domain) [Fintype (spec.Range t)]
+    [OracleSpec.UniformAnswerMeasureAt spec t] (p : spec.Range t → Prop) [DecidablePred p] :
+    Pr{let u ← (query t : OracleComp spec (spec.Range t))}[p u] =
+      ((Finset.univ.filter p).card : ℝ≥0∞) / Fintype.card (spec.Range t) := by
+  rw [HasQuery.instOfMonadLift_query]
+  exact prEvent_liftM_query_eq_card_div t p
+
 end measureSpec
 
 section uniformAnswerMeasure
@@ -562,24 +582,6 @@ theorem support_eq_of_evalDistEq {mx my : OracleComp spec α} (h : mx =ᵈ my) :
   ext x
   rw [mem_support_iff_evalDist_singleton_pos, mem_support_iff_evalDist_singleton_pos,
     h.evalDist_eq]
-
-/-- Under uniform oracle semantics, an event of a single lifted query has the proportion of
-satisfying responses as its probability. -/
-theorem prEvent_liftM_query_eq_card_div (t : spec.Domain) [Fintype (spec.Range t)]
-    (p : spec.Range t → Prop) [DecidablePred p] :
-    Pr{let u ← (liftM (OracleSpec.query t) : OracleComp spec (spec.Range t))}[p u] =
-      ((Finset.univ.filter p).card : ℝ≥0∞) / Fintype.card (spec.Range t) := by
-  let : MeasurableSpace (spec.Range t) := ⊤
-  rw [prEvent_eq_evalDist_of_discrete, evalDist_liftM_query_uniform, uniformOn_univ_apply_setOf]
-
-/-- Under uniform oracle semantics, an event of a single query has the proportion of satisfying
-responses as its probability. -/
-theorem prEvent_query_eq_card_div (t : spec.Domain) [Fintype (spec.Range t)]
-    (p : spec.Range t → Prop) [DecidablePred p] :
-    Pr{let u ← (query t : OracleComp spec (spec.Range t))}[p u] =
-      ((Finset.univ.filter p).card : ℝ≥0∞) / Fintype.card (spec.Range t) := by
-  let : MeasurableSpace (spec.Range t) := ⊤
-  rw [prEvent_eq_evalDist_of_discrete, evalDist_query_uniform, uniformOn_univ_apply_setOf]
 
 /-- **Union bound over a set of indices.** Under uniform oracle semantics, a uniform bound `ε` on
 each event indexed by `T` bounds their union by `ε` times the cardinality of `T`, with no
